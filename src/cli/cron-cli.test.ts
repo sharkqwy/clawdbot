@@ -496,6 +496,16 @@ describe("cron cli", () => {
     expect(clearPatch?.patch?.deleteAfterRun).toBe(false);
   });
 
+  it("rejects conflicting deleteAfterRun flags on cron edit", async () => {
+    await expectCronCommandExit([
+      "cron",
+      "edit",
+      "job-1",
+      "--delete-after-run",
+      "--keep-after-run",
+    ]);
+  });
+
   it("updates delivery settings without requiring --message", async () => {
     await runCronCommand([
       "cron",
