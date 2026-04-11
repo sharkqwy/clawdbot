@@ -54,6 +54,7 @@ vi.mock("../runtime.js", () => ({
 type CronUpdatePatch = {
   patch?: {
     schedule?: { kind?: string; expr?: string; tz?: string; staggerMs?: number };
+    deleteAfterRun?: boolean;
     payload?: {
       kind?: string;
       message?: string;
@@ -485,6 +486,14 @@ describe("cron cli", () => {
 
     const clearPatch = await runCronEditAndGetPatch(["--no-light-context", "--message", "hello"]);
     expect(clearPatch?.patch?.payload?.lightContext).toBe(false);
+  });
+
+  it("sets and clears deleteAfterRun on cron edit", async () => {
+    const setPatch = await runCronEditAndGetPatch(["--delete-after-run"]);
+    expect(setPatch?.patch?.deleteAfterRun).toBe(true);
+
+    const clearPatch = await runCronEditAndGetPatch(["--keep-after-run"]);
+    expect(clearPatch?.patch?.deleteAfterRun).toBe(false);
   });
 
   it("updates delivery settings without requiring --message", async () => {
