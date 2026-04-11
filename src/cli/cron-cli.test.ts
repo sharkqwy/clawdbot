@@ -338,6 +338,26 @@ describe("cron cli", () => {
     expect(params?.deleteAfterRun).toBe(false);
   });
 
+  it("supports --delete-after-run on recurring cron add", async () => {
+    await runCronCommand([
+      "cron",
+      "add",
+      "--name",
+      "Delete recurring",
+      "--every",
+      "5m",
+      "--session",
+      "isolated",
+      "--message",
+      "hello",
+      "--delete-after-run",
+    ]);
+
+    const addCall = callGatewayFromCli.mock.calls.find((call) => call[0] === "cron.add");
+    const params = addCall?.[2] as { deleteAfterRun?: boolean };
+    expect(params?.deleteAfterRun).toBe(true);
+  });
+
   it("includes --account on isolated cron add delivery", async () => {
     const params = await runCronAddAndGetParams([
       "--name",
