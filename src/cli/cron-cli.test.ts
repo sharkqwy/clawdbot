@@ -359,6 +359,23 @@ describe("cron cli", () => {
     expect(params?.deleteAfterRun).toBe(true);
   });
 
+  it("rejects conflicting delivery flags on cron add", async () => {
+    await expectCronCommandExit([
+      "cron",
+      "add",
+      "--name",
+      "delivery-conflict",
+      "--cron",
+      "* * * * *",
+      "--session",
+      "isolated",
+      "--message",
+      "hello",
+      "--announce",
+      "--no-deliver",
+    ]);
+  });
+
   it("rejects conflicting deleteAfterRun flags on cron add", async () => {
     await expectCronCommandExit([
       "cron",
@@ -558,6 +575,10 @@ describe("cron cli", () => {
 
     expect(patch?.patch?.payload?.kind).toBe("agentTurn");
     expect(patch?.patch?.delivery?.mode).toBe("none");
+  });
+
+  it("rejects conflicting delivery flags on cron edit", async () => {
+    await expectCronCommandExit(["cron", "edit", "job-1", "--announce", "--no-deliver"]);
   });
 
   it("updates delivery account without requiring --message on cron edit", async () => {
