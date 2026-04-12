@@ -200,6 +200,9 @@ export function registerCronAddCommand(cron: Command) {
           if (accountId && (!isIsolatedLikeSessionTarget || payload.kind !== "agentTurn")) {
             throw new Error("--account requires a non-main agentTurn job with delivery.");
           }
+          if (accountId && hasNoDeliver) {
+            throw new Error("--account cannot be used with --no-deliver.");
+          }
 
           const deliveryMode =
             isIsolatedLikeSessionTarget && payload.kind === "agentTurn"

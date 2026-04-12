@@ -427,6 +427,24 @@ describe("cron cli", () => {
     ]);
   });
 
+  it("rejects --account with --no-deliver on cron add", async () => {
+    await expectCronCommandExit([
+      "cron",
+      "add",
+      "--name",
+      "invalid no deliver account add",
+      "--cron",
+      "* * * * *",
+      "--session",
+      "isolated",
+      "--message",
+      "hello",
+      "--no-deliver",
+      "--account",
+      "coordinator",
+    ]);
+  });
+
   it.each([
     { command: "enable" as const, expectedEnabled: true },
     { command: "disable" as const, expectedEnabled: false },
