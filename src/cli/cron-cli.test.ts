@@ -359,6 +359,23 @@ describe("cron cli", () => {
     expect(params?.deleteAfterRun).toBe(true);
   });
 
+  it("rejects conflicting deleteAfterRun flags on cron add", async () => {
+    await expectCronCommandExit([
+      "cron",
+      "add",
+      "--name",
+      "conflict",
+      "--cron",
+      "* * * * *",
+      "--session",
+      "isolated",
+      "--message",
+      "hello",
+      "--delete-after-run",
+      "--keep-after-run",
+    ]);
+  });
+
   it("includes --account on isolated cron add delivery", async () => {
     const params = await runCronAddAndGetParams([
       "--name",
