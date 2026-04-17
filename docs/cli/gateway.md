@@ -258,6 +258,7 @@ Notes:
 - In inferred auth mode, shell-only `OPENCLAW_GATEWAY_PASSWORD` does not relax install token requirements; use durable config (`gateway.auth.password` or config `env`) when installing a managed service.
 - If both `gateway.auth.token` and `gateway.auth.password` are configured and `gateway.auth.mode` is unset, install is blocked until mode is set explicitly.
 - Lifecycle commands accept `--json` for scripting.
+- If `openclaw gateway start` is run while a gateway is already active, stop/restart the managed service instead of launching another standalone process (for example: `openclaw gateway restart`, or `systemctl --user restart openclaw-gateway` on systemd hosts).
 
 ## Discover gateways (Bonjour)
 
