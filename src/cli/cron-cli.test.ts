@@ -606,6 +606,17 @@ describe("cron cli", () => {
     expect(patch?.patch?.delivery?.mode).toBeUndefined();
   });
 
+  it("rejects --account with --no-deliver on cron edit", async () => {
+    await expectCronCommandExit([
+      "cron",
+      "edit",
+      "job-1",
+      "--no-deliver",
+      "--account",
+      "coordinator",
+    ]);
+  });
+
   it("does not include undefined delivery fields when updating message", async () => {
     // Update message without delivery flags - should NOT include undefined delivery fields
     await runCronCommand(["cron", "edit", "job-1", "--message", "Updated message"]);

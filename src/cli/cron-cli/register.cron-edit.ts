@@ -181,8 +181,12 @@ export function registerCronEditCommand(cron: Command) {
           const hasTimeoutSeconds = Boolean(timeoutSeconds && Number.isFinite(timeoutSeconds));
           const hasDeliveryModeFlag = opts.announce || typeof opts.deliver === "boolean";
           const hasDeliveryTarget = typeof opts.channel === "string" || typeof opts.to === "string";
+          const accountId = normalizeOptionalString(opts.account);
           const hasDeliveryAccount = typeof opts.account === "string";
           const hasBestEffort = typeof opts.bestEffortDeliver === "boolean";
+          if (accountId && opts.deliver === false) {
+            throw new Error("--account cannot be used with --no-deliver.");
+          }
           const hasAgentTurnPatch =
             typeof opts.message === "string" ||
             Boolean(model) ||
@@ -243,8 +247,7 @@ export function registerCronEditCommand(cron: Command) {
               delivery.to = to ? to : undefined;
             }
             if (typeof opts.account === "string") {
-              const account = opts.account.trim();
-              delivery.accountId = account ? account : undefined;
+              delivery.accountId = accountId ?? undefined;
             }
             if (typeof opts.bestEffortDeliver === "boolean") {
               delivery.bestEffort = opts.bestEffortDeliver;
