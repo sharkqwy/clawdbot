@@ -394,6 +394,44 @@ describe("cron service timer regressions", () => {
     expect(runHeartbeatOnce).toHaveBeenCalledTimes(1);
   });
 
+  it("#63770: deleteAfterRun removes recurring cron-expression wake-now main-session jobs after success", async () => {
+    const store = timerRegressionFixtures.makeStorePath();
+    const scheduledAt = Date.parse("2026-02-06T10:00:00.000Z");
+
+    const cronJob: CronJob = {
+      id: "cron-main-delete-after-run",
+      name: "delete recurring cron-expression main-session job after success",
+      enabled: true,
+      createdAtMs: scheduledAt,
+      updatedAtMs: scheduledAt,
+      schedule: { kind: "cron", expr: "*/1 * * * *", tz: "UTC" },
+      sessionTarget: "main",
+      wakeMode: "now",
+      payload: { kind: "systemEvent", text: "tick" },
+      state: { nextRunAtMs: scheduledAt },
+      deleteAfterRun: true,
+    };
+    await writeCronJobs(store.storePath, [cronJob]);
+
+    const runHeartbeatOnce = vi.fn().mockResolvedValue({ status: "ran", durationMs: 1 });
+    const state = createCronServiceState({
+      cronEnabled: true,
+      storePath: store.storePath,
+      log: noopLogger,
+      nowMs: () => scheduledAt,
+      enqueueSystemEvent: vi.fn(),
+      requestHeartbeatNow: vi.fn(),
+      runHeartbeatOnce,
+      runIsolatedAgentJob: createDefaultIsolatedRunner(),
+    });
+
+    await onTimer(state);
+
+    const deletedJob = state.store?.jobs.find((j) => j.id === "cron-main-delete-after-run");
+    expect(deletedJob).toBeUndefined();
+    expect(runHeartbeatOnce).toHaveBeenCalledTimes(1);
+  });
+
   it("#63770: deleteAfterRun removes recurring jobs after a transient failure then success", async () => {
     const store = timerRegressionFixtures.makeStorePath();
     const scheduledAt = Date.parse("2026-02-06T10:00:00.000Z");
