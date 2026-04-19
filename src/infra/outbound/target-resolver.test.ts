@@ -59,13 +59,14 @@ describe("resolveMessagingTarget (directory fallback)", () => {
 
   beforeEach(() => {
     resetDirectoryCache();
+    const directory = {
+      listPeers: mocks.listPeers,
+      listPeersLive: mocks.listPeersLive,
+      listGroups: mocks.listGroups,
+      listGroupsLive: mocks.listGroupsLive,
+    };
     mocks.getChannelPlugin.mockReturnValue({
-      directory: {
-        listPeers: mocks.listPeers,
-        listPeersLive: mocks.listPeersLive,
-        listGroups: mocks.listGroups,
-        listGroupsLive: mocks.listGroupsLive,
-      },
+      directory,
       messaging: {
         targetResolver: {
           resolveTarget: mocks.resolveTarget,
