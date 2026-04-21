@@ -327,6 +327,43 @@ describe("cron service timer regressions", () => {
     expect(runIsolatedAgentJob).toHaveBeenCalledTimes(1);
   });
 
+  it("#63770: runMissedJobs also removes deleteAfterRun recurring jobs after success", async () => {
+    const store = timerRegressionFixtures.makeStorePath();
+    const scheduledAt = Date.parse("2026-02-06T10:00:00.000Z");
+
+    const cronJob = createIsolatedRegressionJob({
+      id: "every-delete-after-run-catchup",
+      name: "delete recurring catch-up job after success",
+      scheduledAt,
+      schedule: { kind: "every", everyMs: 60_000, anchorMs: scheduledAt },
+      payload: { kind: "agentTurn", message: "run once" },
+      state: { nextRunAtMs: scheduledAt },
+    });
+    cronJob.deleteAfterRun = true;
+    await writeCronJobs(store.storePath, [cronJob]);
+
+    const runIsolatedAgentJob = vi.fn().mockResolvedValue({ status: "ok", summary: "done" });
+    const state = createCronServiceState({
+      cronEnabled: true,
+      storePath: store.storePath,
+      log: noopLogger,
+      nowMs: () => scheduledAt,
+      enqueueSystemEvent: vi.fn(),
+      requestHeartbeatNow: vi.fn(),
+      runIsolatedAgentJob,
+    });
+
+    await runMissedJobs(state);
+
+    const deletedJob = state.store?.jobs.find((j) => j.id === "every-delete-after-run-catchup");
+    expect(deletedJob).toBeUndefined();
+    const persisted = JSON.parse(await fs.readFile(store.storePath, "utf8")) as {
+      jobs?: Array<{ id: string }>;
+    };
+    expect(persisted.jobs?.some((j) => j.id === "every-delete-after-run-catchup")).toBe(false);
+    expect(runIsolatedAgentJob).toHaveBeenCalledTimes(1);
+  });
+
   it("#63770: deleteAfterRun keeps recurring jobs when run fails", async () => {
     const store = timerRegressionFixtures.makeStorePath();
     const scheduledAt = Date.parse("2026-02-06T10:00:00.000Z");
